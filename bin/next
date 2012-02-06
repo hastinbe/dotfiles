@@ -1,0 +1,73 @@
+#!/bin/bash
+
+action=add
+pos=end
+
+while getopts 'dehnN' opt; do
+    case $opt in
+        d) action=done ;;
+        e) action=edit ;;
+        h) action=help ;;
+        n) pos=next ;;
+        N) pos=now ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [[ $action == add && $# -eq 0 ]]; then
+    action=show
+fi
+
+file=~/.next.txt
+
+if [[ ! -f $file ]]; then
+    touch $file
+fi
+
+# Helpers
+function write {
+    for line in "$@"; do
+        if [[ -n "$line" ]]; then
+            echo "$line"
+        fi
+    done > $file
+}
+
+# Actions
+function help {
+    echo "Usage: next               Show    Show the task on the top of the queue"
+    echo "       next <task>        Add     Add new task to the end of the queue"
+    echo "       next -n <task>     Next    Add a new task to the queue after the current task"
+    echo "       next -N <task>     Now     Add a new task to the very top of the queue"
+    echo "       next -d            Done    Remove the task from the top of the queue"
+    echo "       next -e            Edit    Edit all tasks in \$EDITOR"
+}
+
+function show {
+    # Read the first line
+    head -n1 $file
+}
+
+function add {
+    if [[ $pos == now ]]; then
+        # Add to the top of the file
+        write "$@" "$(cat $file)"
+    elif [[ $pos == next ]]; then
+        # Add to the second line
+        write "$(head -n1 $file)" "$@" "$(sed 1d $file)"
+    else
+        # Add to the end of the file
+        write "$(cat $file)" "$@"
+    fi
+}
+
+function done {
+    # Remove the first line
+    sed -i 1d $file
+}
+
+function edit {
+    $EDITOR $file
+}
+
+$action "$@"

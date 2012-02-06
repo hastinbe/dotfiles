@@ -124,15 +124,24 @@ if [ "$TERM" != "dumb" -a -z "$BASH_EXECUTION_STRING" ]; then
     }
 
     # Function to update the prompt with a given message (makes it easier to distinguish between different windows)
-    function MSG
-    {
+    function MSG {
+        PromptMessage="$*"
+    }
+
+    function messageprompt {
+        if [ -n "$PromptMessage" ]; then
+            message="$PromptMessage"
+        else
+            message="$(next)"
+        fi
+
         # Display the provided message above the prompt and in the titlebar
-        if [ -n "$*" ]; then
+        if [ -n "$PromptMessage" ]; then
             MessageCode="\e[35;1m--------------------------------------------------------------------------------\n $*\n--------------------------------------------------------------------------------\e[0m\n"
-            TitlebarCode="\[\e]2;[$*] $Titlebar\a\]"
+            TitlebarCode="\e]2;[$*] $Titlebar\a"
         else
             MessageCode=
-            TitlebarCode="\[\e]2;$Titlebar\a\]"
+            TitlebarCode="\e]2;$Titlebar\a"
         fi
 
         # If changing the titlebar is not supported, remove that code
@@ -140,24 +149,21 @@ if [ "$TERM" != "dumb" -a -z "$BASH_EXECUTION_STRING" ]; then
             TitlebarCode=
         fi
 
-        # Set the prompt
-        PS1="${TitlebarCode}\n"                 # Titlebar (see above)
-        PS1="${PS1}${MessageCode}"              # Message (see above)
-        PS1="${PS1}\[\e[30;1m\]["               # [                             Grey
-        PS1="${PS1}\[\e[31;1m\]\u"              # Username                      Red
-        PS1="${PS1}\[\e[30;1m\]@"               # @                             Grey
-        PS1="${PS1}\[\e[32;1m\]\h"              # Hostname                      Green
-        PS1="${PS1}\[\e[30;1m\]:"               # :                             Grey
-        PS1="${PS1}\[\e[33;1m\]\`vcsprompt\`"   # Working directory / Git / Hg  Yellow
-        PS1="${PS1}\[\e[30;1m\]]"               # ]                             Grey
-        PS1="${PS1}\[\e[1;35m\]\$KeyStatus"     # SSH key status                Pink
-        PS1="${PS1}\n"                          # (New line)
-        PS1="${PS1}\[\e[31;1m\]\\\$"            # $                             Red
-        PS1="${PS1}\[\e[0m\] "
+        echo -e "$TitlebarCode$MessageCode"
     }
 
-    # Default to prompt with no message
-    MSG
+    # Set the prompt
+    PS1="\$(messageprompt)\n"               # Titlebar & message            Pink
+    PS1="${PS1}\[\e[30;1m\]["               # [                             Grey
+    PS1="${PS1}\[\e[31;1m\]\u"              # Username                      Red
+    PS1="${PS1}\[\e[30;1m\]@"               # @                             Grey
+    PS1="${PS1}\[\e[32;1m\]\h"              # Hostname                      Green
+    PS1="${PS1}\[\e[30;1m\]:"               # :                             Grey
+    PS1="${PS1}\[\e[33;1m\]\$(vcsprompt)"   # Working directory / Git / Hg  Yellow
+    PS1="${PS1}\[\e[30;1m\]]"               # ]                             Grey
+    PS1="${PS1}\n"                          # (New line)
+    PS1="${PS1}\[\e[31;1m\]\\\$"            # $                             Red
+    PS1="${PS1}\[\e[0m\] "
 
     # For safety!
     alias cp='cp -i'
