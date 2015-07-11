@@ -5,3 +5,6 @@ fi
 
 # Don't tab-complete an empty line - there's not really any use for it
 shopt -s no_empty_cmd_completion
+
+# Custom completions
+complete -C "z --bash-completion" z

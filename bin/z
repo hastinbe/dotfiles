@@ -7,6 +7,19 @@ shopt -s nullglob
 
 exe="$(basename "$0")"
 
+# Bash completion mode?
+if [ "${1:-}" = "--bash-completion" ]; then
+    shift 2
+    echo >&2
+    echo "$@" >&2
+#    (
+#        echo "test"
+#        echo "test two"
+#    ) | compgen -W - "${COMP_WORDS[@]}"
+    exit
+fi
+
+
 # Locate the scripts directory
 if ! root="$(findup -d scripts)"; then
     echo "'scripts' directory not found" >&2
